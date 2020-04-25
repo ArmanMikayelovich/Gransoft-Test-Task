@@ -40,6 +40,6 @@ h1 {
 }
 
 .gwt-Button {
-  color: white;
-  background-color: blue;
+  color: black;
+  border-color: blue;
 }

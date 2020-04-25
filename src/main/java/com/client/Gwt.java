@@ -1,6 +1,5 @@
 package com.client;
 
-import com.gargoylesoftware.htmlunit.javascript.host.Console;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Window;
@@ -26,6 +25,7 @@ public class Gwt implements EntryPoint {
      * This is the entry point method.
      */
     public void onModuleLoad() {
+        RootPanel.get("screenText").add(new Label("Intro screen"));
         addClickHandlerToButton(button);
         firstPageVerticalPanel.add(label);
         firstPageVerticalPanel.add(textBox);
@@ -53,6 +53,8 @@ public class Gwt implements EntryPoint {
     }
 
     private void buildSecondPage(Panel secondPageVerticalPanel) {
+        RootPanel.get("screenText").clear();
+        RootPanel.get("screenText").add(new Label("Sortscreen"));
         int layoutPanelCount;
         if (buttonCount % 10 > 0) {
             layoutPanelCount = (buttonCount / 10) + 1;
@@ -74,16 +76,12 @@ public class Gwt implements EntryPoint {
             VerticalPanel widgets = layoutPanels.get(layoutPanelOffset);
             for (int buttonOffset = layoutPanelOffset * BUTTONS_ON_ROW; buttonOffset < buttonCount; buttonOffset++) {
                 widgets.add(buttonList.get(buttonOffset));
-//                if (buttonOffset >= 10 && buttonOffset % 10 == 0) {
-//                    break;
-//                }
                 if (buttonOffset == (layoutPanelOffset * BUTTONS_ON_ROW) + BUTTONS_ON_ROW) {
                     break;
                 }
             }
             secondPageVerticalPanel.add(widgets);
         }
-
 
 
     }

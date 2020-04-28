@@ -1,7 +1,6 @@
 package com.client;
 
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
@@ -16,20 +15,15 @@ public class Gwt implements EntryPoint {
     private static final int MAX_NUMBER_VALUE = 1000;
 
     //Common fields
+    private static final String INTERACTION_DIV = "interaction";
     private static final String INTRO_SCREEN_TEXT = "Intro screen";
     private static final String SORT_SCREEN_TEXT = "Sortscreen";
     private static final int BUTTONS_ON_ROW = 10;
-
-    private static int idForButton = 0;
 
     //Common fields
     private Label introLabel = new Label();
     private int buttonCount;
 
-    //Fields for Intro screen
-    private Label firstPageQuestionLabel;
-    private TextBox firstPageTextBox;
-    private Button firstPageButton;
     private VerticalPanel firstPageVerticalPanel;
 
     //Fields for Sort screen
@@ -38,7 +32,6 @@ public class Gwt implements EntryPoint {
     private ButtonWithValue[] buttonArray;
     private boolean isDESC = true;
     private PopupPanel popupPanel;
-
 
 
     /**
@@ -50,38 +43,53 @@ public class Gwt implements EntryPoint {
         initFirstPage();
     }
 
+    /**
+     * Initialize Intro screen.
+     */
     private void initFirstPage() {
-        changeIntroLabelText("Intro screen");
+        changeIntroLabelText(INTRO_SCREEN_TEXT);
         firstPageVerticalPanel = new VerticalPanel();
-        firstPageQuestionLabel = new Label("How many numbers to display?");
-        firstPageTextBox = new TextBox();
-        firstPageButton = new Button("Enter");
+        //Fields for Intro screen
+        Label firstPageQuestionLabel = new Label("How many numbers to display?");
+        TextBox firstPageTextBox = new TextBox();
+        Button firstPageButton = new Button("Enter");
         firstPageButton.addClickHandler(event -> {
             String buttonValue = firstPageTextBox.getValue();
             firstPageTextBox.setValue("");
             if (!buttonValue.matches("\\d+") || Integer.parseInt(buttonValue) < 1) {
-                Window.alert("Please type digits bigger than 1.");
+                Window.alert("Please type number bigger than 1.");
                 return;
             }
             this.buttonCount = Integer.parseInt(buttonValue);
 
-            RootPanel.get("interaction").remove(firstPageVerticalPanel);
+            RootPanel.get(INTERACTION_DIV).remove(firstPageVerticalPanel);
             initSecondPage(secondPageHorizontalPanel);
-            RootPanel.get("interaction").add(secondPageHorizontalPanel);
+            RootPanel.get(INTERACTION_DIV).add(secondPageHorizontalPanel);
         });
 
         firstPageVerticalPanel.add(firstPageQuestionLabel);
         firstPageVerticalPanel.add(firstPageTextBox);
         firstPageVerticalPanel.add(firstPageButton);
-        RootPanel.get("interaction").add(firstPageVerticalPanel);
+        RootPanel.get(INTERACTION_DIV).add(firstPageVerticalPanel);
     }
 
+    /**
+     * Changes the text at the top of the page
+     * @param text new text for label
+     */
     private void changeIntroLabelText(String text) {
         introLabel.setText(text);
     }
 
+    /**
+     * Initializes second screen:
+     *  - creates vertical panels and fill buttons with random values.
+     *   - creates action button for second page (Sort, Reset).
+     *   - creates PopupPanel for error message.
+     * @param secondPageVerticalPanel empty panel for filling.
+     */
     private void initSecondPage(Panel secondPageVerticalPanel) {
-        // add introducer text to second page
+        // add introduce text to second page
         changeIntroLabelText(SORT_SCREEN_TEXT);
 
         int layoutPanelCount;
@@ -108,17 +116,23 @@ public class Gwt implements EntryPoint {
         popupPanel.setWidget(new Label("Please select a value smaller or equal to 30."));
     }
 
+    /**
+     *  Create actions buttons( Sort, Reset).
+     *   - Sort - The first hit starts sorting in descending order, the next changes sorting in ascending order.
+     *   - Reset - return to intro screen.
+     * @param secondPageVerticalPanel initialized panel for adding actions buttons.
+     */
     private void createButtonsForSecondPage(Panel secondPageVerticalPanel) {
         Button resetButton = new Button("Reset");
         resetButton.addClickHandler(event -> {
             //clean second page
             buttonArray = null;
             verticalPanels.clear();
-            secondPageVerticalPanel.clear();//FIXME perhaps I can found more effective way for switching to intro page
+            secondPageVerticalPanel.clear();
 
-            RootPanel.get("interaction").clear();
+            RootPanel.get(INTERACTION_DIV).clear();
             changeIntroLabelText(INTRO_SCREEN_TEXT);
-            RootPanel.get("interaction").add(firstPageVerticalPanel);
+            RootPanel.get(INTERACTION_DIV).add(firstPageVerticalPanel);
         });
 
 
@@ -133,12 +147,18 @@ public class Gwt implements EntryPoint {
             fillVerticalPanels(verticalPanels, buttonArray);
         });
 
-        VerticalPanel processButtonsPanel = new VerticalPanel();
-        processButtonsPanel.add(sortButton);
-        processButtonsPanel.add(resetButton);
-        secondPageVerticalPanel.add(processButtonsPanel);
+        VerticalPanel actionButtonsPanel = new VerticalPanel();
+        actionButtonsPanel.add(sortButton);
+        actionButtonsPanel.add(resetButton);
+        secondPageVerticalPanel.add(actionButtonsPanel);
     }
 
+    /**
+     * Create buttons with random numbers with the criteria:
+     *  - The max number value is 1000
+     * - At least one value should be equal or less than 30
+     * @return Button array with X length and filled with random numbers
+     */
     private ButtonWithValue[] createButtonsWithRandomValues() {
         ButtonWithValue[] buttonsWithValue = new ButtonWithValue[buttonCount];
         boolean isNeedChange = true;
@@ -159,6 +179,11 @@ public class Gwt implements EntryPoint {
 
     }
 
+    /**
+     * Fills the panels with buttons, 10 in each panel.
+     * @param verticalPanels Panels to fill.
+     * @param buttonArray Array with buttons.
+     */
     private void fillVerticalPanels(ArrayList<VerticalPanel> verticalPanels, ButtonWithValue[] buttonArray) {
         for (VerticalPanel panel : verticalPanels) {
             panel.clear();
@@ -249,41 +274,35 @@ public class Gwt implements EntryPoint {
 
     }
 
-    private void showPopUp() {
-      popupPanel.show();
-    }
-
+    /**
+     * This class extends Button because it need value field in number format for sorting with quick sort.
+     */
     private class ButtonWithValue extends Button {
         private int value;
 
+        /**
+         * Set value and Html text on Button
+         * Adds click handler to button, which meets the following condition:
+         *  - If the clicked value is more than 30, pop up a message “Please select a value smaller or equal to 30.
+         *  - If the clicked value is equal or less than 30, present X new random numbers on the screen.
+         * @param value set value of Button
+         */
         public ButtonWithValue(int value) {
             super("" + value);
-            setId(Gwt.idForButton++);
             this.value = value;
-            addClickHandler(this);
+
+            this.addClickHandler(event -> {
+                if (this.value > 30) {
+                    popupPanel.show();
+                } else {
+                    buttonArray = createButtonsWithRandomValues();
+                    fillVerticalPanels(verticalPanels, buttonArray);
+                }
+            });
         }
 
         public int getValue() {
             return value;
-        }
-
-        public int getId() {
-            return Integer.parseInt(this.getElement().getId());
-        }
-
-        private void setId(int id) {
-            this.getElement().setId("" + id);
-        }
-
-        private void addClickHandler(ButtonWithValue button) {
-            button.addClickHandler(event -> {
-                if (this.value > 30) {
-                    showPopUp();
-                    return;
-                }
-                buttonArray = createButtonsWithRandomValues();
-                fillVerticalPanels(verticalPanels, buttonArray);
-            });
         }
 
         public void changeValue(int i) {
